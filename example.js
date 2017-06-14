@@ -1,11 +1,19 @@
 'use strict';
 
-var metadata = require('./');
 var githubAuth = require('bot-github-auth')();
+var extend = require('extend-shallow');
+var metadata = require('./');
+
+var options = {
+  org: 'assemble',
+  owner: 'assemble',
+  repo: 'assemble'
+};
 
 githubAuth()
   .then(function(auth) {
-    metadata(auth, function(err, data) {
+    var opts = extend({}, options, auth);
+    metadata(opts, function(err, data) {
       if (err) {
         console.error(err);
         return;

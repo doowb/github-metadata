@@ -15,19 +15,19 @@ module.exports = function(options, cb) {
   var getData = get.bind(null, github);
 
   Promise.resolve(context)
-    .then(pagedData('site.github.public_repositories', '/orgs/:org/repos', {org: 'assemble'}))
-    .then(pagedData('site.github.organization_members', '/orgs/:org/members', {org: 'assemble'}))
-    .then(pagedData('site.github.contributors', '/repos/:owner/:repo/contributors', {owner: 'assemble', repo: 'assemble'}))
-    .then(pagedData('site.github.collaborators', '/repos/:owner/:repo/collaborators', {owner: 'assemble', repo: 'assemble'}))
-    .then(pagedData('site.github.branches', '/repos/:owner/:repo/branches', {owner: 'assemble', repo: 'assemble'}))
-    .then(getData('site.github.languages', '/repos/:owner/:repo/languages', {owner: 'assemble', repo: 'assemble'}))
-    .then(pagedData('site.github.teams', '/repos/:owner/:repo/teams', {owner: 'assemble', repo: 'assemble'}))
-    .then(pagedData('site.github.releases', '/repos/:owner/:repo/releases', {owner: 'assemble', repo: 'assemble'}))
-    .then(pagedData('site.github.tags', '/repos/:owner/:repo/tags', {owner: 'assemble', repo: 'assemble'}))
+    .then(pagedData('site.github.public_repositories', '/orgs/:org/repos', opts))
+    .then(pagedData('site.github.organization_members', '/orgs/:org/members', opts))
+    .then(pagedData('site.github.contributors', '/repos/:owner/:repo/contributors', opts))
+    .then(pagedData('site.github.collaborators', '/repos/:owner/:repo/collaborators', opts))
+    .then(pagedData('site.github.branches', '/repos/:owner/:repo/branches', opts))
+    .then(getData('site.github.languages', '/repos/:owner/:repo/languages', opts))
+    .then(pagedData('site.github.teams', '/repos/:owner/:repo/teams', opts))
+    .then(pagedData('site.github.releases', '/repos/:owner/:repo/releases', opts))
+    .then(pagedData('site.github.tags', '/repos/:owner/:repo/tags', opts))
     .then(function(context) {
       return Promise.resolve({})
-        .then(getData('repo', '/repos/:owner/:repo', {owner: 'assemble', repo: 'assemble'}))
-        .then(getData('pages', '/repos/:owner/:repo/pages', {owner: 'assemble', repo: 'assemble'}))
+        .then(getData('repo', '/repos/:owner/:repo', opts))
+        .then(getData('pages', '/repos/:owner/:repo/pages', opts))
         .then(function(repoData) {
           var pages = extend({}, repoData.pages);
           var pagesProps = {
