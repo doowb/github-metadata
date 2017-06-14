@@ -24,66 +24,62 @@ module.exports = function(options, cb) {
     .then(pagedData('site.github.teams', '/repos/:owner/:repo/teams', opts))
     .then(pagedData('site.github.releases', '/repos/:owner/:repo/releases', opts))
     .then(pagedData('site.github.tags', '/repos/:owner/:repo/tags', opts))
-    .then(function(context) {
-      return Promise.resolve({})
-        .then(getData('repo', '/repos/:owner/:repo', opts))
-        .then(getData('pages', '/repos/:owner/:repo/pages', opts))
-        .then(function(repoData) {
-          var pages = extend({}, repoData.pages);
-          var pagesProps = {
-            cname: 'site.github.url'
-          };
-
-          var repo = extend({}, repoData.repo);
-          var repoProps = {
-            'name': 'site.github.project_title',
-            // 'tagline': 'site.github.project_tagline',
-            'description': 'site.github.project_tagline',
-            'owner.login': 'site.github.owner_name',
-            'owner.html_url': 'site.github.owner_url',
-            'owner.avatar_url': 'site.github.owner_gravatar_url',
-            'html_url': 'site.github.repository_url',
-            // 'nwo': 'site.github.repository_nwo',
-            'name': 'site.github.repository_name',
-            // 'zip_url': 'site.github.zip_url',
-            // 'tar_url': 'site.github.tar_url',
-            'clone_url': 'site.github.clone_url',
-            'releases_url': 'site.github.releases_url',
-            'issues_url': 'site.github.issues_url',
-            // 'wiki_url': 'site.github.wiki_url',
-            'language': 'site.github.language',
-            // 'user_page': 'site.github.is_user_page',
-            // 'project_page': 'site.github.is_project_page',
-            // 'show_downloads': 'site.github.show_downloads',
-            'html_url': 'site.github.url',
-            // 'baseurl': 'site.github.baseurl'
-          };
-
-          setValue(context, 'site.github.hostname', env('PAGES_GITHUB_HOSTNAME', 'github.com'));
-          // pages_hostname might be localhost:4000 when in development mode
-          // this should be more configurable
-          setValue(context, 'site.github.pages_hostname', env('PAGES_PAGES_HOSTNAME', 'github.io'));
-          setValue(context, 'site.github.api_url', env('PAGES_API_URL', env('API_URL', 'https://api.github.com')));
-          setValue(context, 'site.github.help_url', env('PAGES_HELP_URL', env('HELP_URL','https://help.github.com')));
-          setValue(context, 'site.github.environment', env('PAGES_ENV', 'development'));
-          setValue(context, 'site.github.pages_env', env('PAGES_ENV', 'development'));
-          copyAll(pages, context, pagesProps);
-          copyAll(repo, context, repoProps);
-          setValue(context, 'site.github.repository', repo);
-          return context;
-        });
-    })
+    .then(getData('site.github.repository', '/repos/:owner/:repo', opts))
+    .then(getData('site.github.pages', '/repos/:owner/:repo/pages', opts))
+    .then(copyProperties)
     .then(function(context) {
       cb(null, context);
     })
     .catch(cb);
 };
 
+function copyProperties(context) {
+  var pages = extend({}, getValue(context, 'site.github.pages'));
+  var pagesProps = {
+    cname: 'site.github.url'
+  };
+
+  var repo = extend({}, getValue(context, 'site.github.repository'));
+  var repoProps = {
+    'name': ['site.github.project_title', 'site.github.repository_name'],
+    // 'tagline': 'site.github.project_tagline',
+    'description': 'site.github.project_tagline',
+    'owner.login': 'site.github.owner_name',
+    'owner.html_url': 'site.github.owner_url',
+    'owner.avatar_url': 'site.github.owner_gravatar_url',
+    'html_url': ['site.github.repository_url', 'site.github.url'],
+    // 'nwo': 'site.github.repository_nwo',
+    // 'zip_url': 'site.github.zip_url',
+    // 'tar_url': 'site.github.tar_url',
+    'clone_url': 'site.github.clone_url',
+    'releases_url': 'site.github.releases_url',
+    'issues_url': 'site.github.issues_url',
+    // 'wiki_url': 'site.github.wiki_url',
+    'language': 'site.github.language',
+    // 'user_page': 'site.github.is_user_page',
+    // 'project_page': 'site.github.is_project_page',
+    // 'show_downloads': 'site.github.show_downloads',
+    // 'baseurl': 'site.github.baseurl'
+  };
+
+  setValue(context, 'site.github.hostname', env('PAGES_GITHUB_HOSTNAME', 'github.com'));
+  // pages_hostname might be localhost:4000 when in development mode
+  // this should be more configurable
+  setValue(context, 'site.github.pages_hostname', env('PAGES_PAGES_HOSTNAME', 'github.io'));
+  setValue(context, 'site.github.api_url', env('PAGES_API_URL', env('API_URL', 'https://api.github.com')));
+  setValue(context, 'site.github.help_url', env('PAGES_HELP_URL', env('HELP_URL','https://help.github.com')));
+  setValue(context, 'site.github.environment', env('PAGES_ENV', 'development'));
+  setValue(context, 'site.github.pages_env', env('PAGES_ENV', 'development'));
+  copyAll(pages, context, pagesProps);
+  copyAll(repo, context, repoProps);
+  return context;
+}
+
 function paged(github, prop, path, options) {
   var opts = extend({}, options);
   return function(context) {
     return new Promise(function(resolve, reject) {
-      github.paged(path, options, function(err, data, res) {
+      github.paged(path, opts, function(err, data, res) {
         if (err) {
           reject(err);
           return;
@@ -99,7 +95,7 @@ function get(github, prop, path, options) {
   var opts = extend({}, options);
   return function(context) {
     return new Promise(function(resolve, reject) {
-      github.get(path, options, function(err, data, res) {
+      github.get(path, opts, function(err, data, res) {
         if (err) {
           reject(err);
           return;
@@ -116,6 +112,12 @@ function env(key, fallback) {
 }
 
 function copy(provider, reciever, from, to) {
+  if (Array.isArray(to)) {
+    to.forEach(function(prop) {
+      copy(provider, reciever, from, prop);
+    });
+    return;
+  }
   setValue(reciever, to, getValue(provider, from));
 }
 
