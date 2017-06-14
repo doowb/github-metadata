@@ -15,8 +15,7 @@ module.exports = function(options, cb) {
   var getData = get.bind(null, github);
 
   Promise.resolve(context)
-    .then(pagedData('site.github.public_repositories', '/orgs/:owner/repos', opts))
-    .then(pagedData('site.github.organization_members', '/orgs/:owner/members', opts))
+    .then(orgData(github, opts))
     .then(pagedData('site.github.contributors', '/repos/:owner/:repo/contributors', opts))
     .then(pagedData('site.github.collaborators', '/repos/:owner/:repo/collaborators', opts))
     .then(pagedData('site.github.branches', '/repos/:owner/:repo/branches', opts))
@@ -33,6 +32,25 @@ module.exports = function(options, cb) {
     })
     .catch(cb);
 };
+
+function orgData(github, options) {
+  var opts = extend({}, options);
+  return function(context) {
+    return Promise.resolve({})
+      .then(get(github, 'org', '/orgs/:owner', opts))
+      .then(function(orgInfo) {
+        var err = getValue(orgInfo, 'org.message');
+        if (err && err === 'Not Found') {
+          return Promise.resolve(context)
+            .then(paged(github, 'site.github.public_repositories', '/users/:owner/repos', opts));
+        }
+
+        return Promise.resolve(context)
+          .then(paged(github, 'site.github.public_repositories', '/orgs/:owner/repos', opts))
+          .then(paged(github, 'site.github.organization_members', '/orgs/:owner/members', opts));
+      });
+  };
+}
 
 function createPagesData(options) {
   var opts = extend({}, options);
