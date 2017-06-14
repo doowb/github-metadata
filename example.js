@@ -5,7 +5,6 @@ var extend = require('extend-shallow');
 var metadata = require('./');
 
 var options = {
-  org: 'assemble',
   owner: 'assemble',
   repo: 'assemble'
 };

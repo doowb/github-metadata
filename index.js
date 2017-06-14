@@ -15,8 +15,8 @@ module.exports = function(options, cb) {
   var getData = get.bind(null, github);
 
   Promise.resolve(context)
-    .then(pagedData('site.github.public_repositories', '/orgs/:org/repos', opts))
-    .then(pagedData('site.github.organization_members', '/orgs/:org/members', opts))
+    .then(pagedData('site.github.public_repositories', '/orgs/:owner/repos', opts))
+    .then(pagedData('site.github.organization_members', '/orgs/:owner/members', opts))
     .then(pagedData('site.github.contributors', '/repos/:owner/:repo/contributors', opts))
     .then(pagedData('site.github.collaborators', '/repos/:owner/:repo/collaborators', opts))
     .then(pagedData('site.github.branches', '/repos/:owner/:repo/branches', opts))
@@ -25,54 +25,106 @@ module.exports = function(options, cb) {
     .then(pagedData('site.github.releases', '/repos/:owner/:repo/releases', opts))
     .then(pagedData('site.github.tags', '/repos/:owner/:repo/tags', opts))
     .then(getData('site.github.repository', '/repos/:owner/:repo', opts))
-    .then(getData('site.github.pages', '/repos/:owner/:repo/pages', opts))
-    .then(copyProperties)
+    .then(getData('site.github.pages_info', '/repos/:owner/:repo/pages', opts))
+    .then(createPagesData(opts))
+    .then(copyProperties(opts))
     .then(function(context) {
       cb(null, context);
     })
     .catch(cb);
 };
 
-function copyProperties(context) {
-  var pages = extend({}, getValue(context, 'site.github.pages'));
-  var pagesProps = {
-    cname: 'site.github.url'
-  };
+function createPagesData(options) {
+  var opts = extend({}, options);
+  return function(context) {
+    var pages = {};
+    setValue(pages, 'env', env('PAGES_ENV', env('JEKYLL_ENV', 'development')));
+    setValue(pages, 'test', pages.env === 'test');
+    setValue(pages, 'dotcom', pages.env === 'dotcom');
+    setValue(pages, 'enterprise', pages.env === 'enterprise');
+    setValue(pages, 'development', pages.env === 'development');
+    setValue(pages, 'ssl', env('SSL', pages.test));
+    setValue(pages, 'schema', pages.ssl ? 'https' : 'http');
+    setValue(pages, 'subdomain_isolation', env('SUBDOMAIN_ISOLATION'));
+    setValue(pages, 'custom_domains_enabled', pages.dotcom || pages.test);
+    setValue(pages, 'github_hostname', env('PAGES_GITHUB_HOSTNAME', env('GITHUB_HOSTNAME', 'github.com')));
+    setValue(pages, 'pages_hostname', env('PAGES_PAGES_HOSTNAME', pages.development ? 'localhost:4000' : env('PAGES_HOSTNAME', 'github.io')));
+    setValue(pages, 'github_url', pages.dotcom ? 'https://github.com' : `${pages.schema}://${pages.github_hostname}`);
+    setValue(pages, 'api_url', env('PAGES_API_URL', env('API_URL', 'https://api.github.com')));
+    setValue(pages, 'help_url', env('PAGES_HELP_URL', env('HELP_URL', 'https://help.github.com')));
+    setValue(pages, 'pages_build', env('PAGES_BUILD_ID'));
 
-  var repo = extend({}, getValue(context, 'site.github.repository'));
-  var repoProps = {
-    'name': ['site.github.project_title', 'site.github.repository_name'],
-    // 'tagline': 'site.github.project_tagline',
-    'description': 'site.github.project_tagline',
-    'owner.login': 'site.github.owner_name',
-    'owner.html_url': 'site.github.owner_url',
-    'owner.avatar_url': 'site.github.owner_gravatar_url',
-    'html_url': ['site.github.repository_url', 'site.github.url'],
-    // 'nwo': 'site.github.repository_nwo',
-    // 'zip_url': 'site.github.zip_url',
-    // 'tar_url': 'site.github.tar_url',
-    'clone_url': 'site.github.clone_url',
-    'releases_url': 'site.github.releases_url',
-    'issues_url': 'site.github.issues_url',
-    // 'wiki_url': 'site.github.wiki_url',
-    'language': 'site.github.language',
-    // 'user_page': 'site.github.is_user_page',
-    // 'project_page': 'site.github.is_project_page',
-    // 'show_downloads': 'site.github.show_downloads',
-    // 'baseurl': 'site.github.baseurl'
+    setValue(context, 'site.github.pages', pages);
+    return context;
   };
+}
 
-  setValue(context, 'site.github.hostname', env('PAGES_GITHUB_HOSTNAME', 'github.com'));
-  // pages_hostname might be localhost:4000 when in development mode
-  // this should be more configurable
-  setValue(context, 'site.github.pages_hostname', env('PAGES_PAGES_HOSTNAME', 'github.io'));
-  setValue(context, 'site.github.api_url', env('PAGES_API_URL', env('API_URL', 'https://api.github.com')));
-  setValue(context, 'site.github.help_url', env('PAGES_HELP_URL', env('HELP_URL','https://help.github.com')));
-  setValue(context, 'site.github.environment', env('PAGES_ENV', 'development'));
-  setValue(context, 'site.github.pages_env', env('PAGES_ENV', 'development'));
-  copyAll(pages, context, pagesProps);
-  copyAll(repo, context, repoProps);
-  return context;
+function copyProperties(options) {
+  var opts = extend({}, options);
+  return function(context) {
+    var pages = extend({}, getValue(context, 'site.github.pages'));
+    var pagesProps = {
+      'github_hostname': 'site.github.hostname',
+      'pages_hostname': 'site.github.pages_hostname',
+      'api_url': 'site.github.api_url',
+      'help_url': 'site.github.help_url',
+      'env': ['site.github.environment', 'site.github.pages_env']
+    };
+
+    var pagesInfo = extend({}, getValue(context, 'site.github.pages_info'));
+    var pagesInfoProps = {
+      cname: 'site.github.url'
+    };
+
+    var repo = extend({}, getValue(context, 'site.github.repository'));
+    var repoProps = {
+      'name': ['site.github.project_title', 'site.github.repository_name'],
+      'full_name': 'site.github.repository_nwo',
+      'description': 'site.github.project_tagline',
+      'owner.login': 'site.github.owner_name',
+      'owner.avatar_url': 'site.github.owner_gravatar_url',
+      'html_url': ['site.github.repository_url', 'site.github.url'],
+      'language': 'site.github.language',
+      'has_downloads': 'site.github.show_downloads'
+    };
+
+    copyAll(pages, context, pagesProps);
+    copyAll(pagesInfo, context, pagesInfoProps);
+    copyAll(repo, context, repoProps);
+
+    setValue(context, 'site.github.owner_url', `${getValue(pages, 'github_url')}/${opts.owner}`);
+    setValue(context, 'site.github.owner_gravatar_url', `${getValue(context, 'site.github.owner_url')}.png}`);
+
+    var githubRepo = !pages.enterprise && opts.owner === 'github';
+    var defaultUserDomain = githubRepo
+      ? `${opts.owner}.${pages.github_hostname}`
+      : (pages.enterprise ? pages.pages_hostname : `${opts.owner}.${pages.pages_hostname}`);
+
+    var userPageDomains = [defaultUserDomain];
+    if (pages.enterprise === false) {
+      userPageDomains.push(`${opts.owner}.github.com`);
+    }
+
+    var primary = pages.enterprise
+      ? repo.name.toLowerCase() === `${opts.owner.toLowerCase()}.${pages.github_hostname}`
+      : userPageDomains.indexOf(repo.name.toLowerCase()) !== -1;
+
+    var userPage = primary;
+    var repoUrl = `${getValue(context, 'site.github.owner_url')}/${repo.name}`;
+    var gitRef = koalas(getValue(pagesInfo, 'source.branch'), userPage ? 'master' : 'gh_pages');
+
+    setValue(context, 'site.github.zip_url', `${repoUrl}/zipball/${gitRef}`);
+    setValue(context, 'site.github.tar_url', `${repoUrl}/tarball/${gitRef}`);
+    setValue(context, 'site.github.clone_url', `${repoUrl}.git`);
+    setValue(context, 'site.github.releases_url', `${repoUrl}/releases`);
+    setValue(context, 'site.github.issues_url', `${repoUrl}/issues`);
+    if (repo.has_wiki) {
+      setValue(context, 'site.github.wiki_url', `${repoUrl}/wiki`);
+    }
+    setValue(context, 'site.github.is_user_page', userPage);
+    setValue(context, 'site.github.is_project_page', !userPage);
+    return context;
+  };
 }
 
 function paged(github, prop, path, options) {
