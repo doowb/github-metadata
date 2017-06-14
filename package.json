@@ -10,8 +10,7 @@
   },
   "license": "MIT",
   "files": [
-    "index.js",
-    "LICENSE"
+    "index.js"
   ],
   "main": "index.js",
   "engines": {
@@ -20,8 +19,18 @@
   "scripts": {
     "test": "mocha"
   },
+  "dependencies": {
+    "extend-shallow": "^2.0.1",
+    "get-value": "^2.0.6",
+    "github-base": "^0.5.4",
+    "koalas": "^1.0.2",
+    "set-value": "^1.0.0"
+  },
   "keywords": [
     "github",
     "metadata"
-  ]
+  ],
+  "devDependencies": {
+    "bot-github-auth": "^0.1.0"
+  }
 }
