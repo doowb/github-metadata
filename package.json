@@ -26,21 +26,21 @@
     "koalas": "^1.0.2",
     "set-value": "^1.0.0"
   },
-  "keywords": [
-    "api",
-    "assemble",
-    "github",
-    "github-metadata",
-    "github-base",
-    "github-api",
-    "jekyll",
-    "metadata"
-  ],
   "devDependencies": {
     "bot-github-auth": "^0.1.0",
     "gulp-format-md": "^0.1.12",
     "mocha": "^3.4.2"
   },
+  "keywords": [
+    "api",
+    "assemble",
+    "github",
+    "github-api",
+    "github-base",
+    "github-metadata",
+    "jekyll",
+    "metadata"
+  ],
   "verb": {
     "toc": false,
     "layout": "default",
@@ -52,8 +52,8 @@
     ],
     "related": {
       "list": [
-        "github-base",
-        "assemble"
+        "assemble",
+        "github-base"
       ]
     },
     "lint": {
