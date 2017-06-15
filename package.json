@@ -31,6 +31,20 @@
     "metadata"
   ],
   "devDependencies": {
-    "bot-github-auth": "^0.1.0"
+    "bot-github-auth": "^0.1.0",
+    "gulp-format-md": "^0.1.12"
+  },
+  "verb": {
+    "toc": false,
+    "layout": "default",
+    "tasks": [
+      "readme"
+    ],
+    "plugins": [
+      "gulp-format-md"
+    ],
+    "lint": {
+      "reflinks": true
+    }
   }
 }
