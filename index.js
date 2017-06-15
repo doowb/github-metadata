@@ -6,6 +6,47 @@ var setValue = require('set-value');
 var getValue = require('get-value');
 var koalas = require('koalas');
 
+/**
+ * Gather GitHub metadata for the specified repository. This attempts to get the same metadata
+ * that's used by Jekyll and specified in the [Github docs](https://help.github.com/articles/repository-metadata-on-github-pages/).
+ * Some of the metadata requires authenticating which requires either passing a `username` and `password` or `token` on the `options` object.
+ * It's best to use a [personal access token](https://github.com/settings/tokens) from GitHub.
+ * See the [results](#results) section to see what the returned metadata object looks like
+ *
+ * ```js
+ * var options = {
+ *   token: 'XXXXXXXXXX' // get this from GitHub,
+ *   owner: 'doowb',
+ *   repo: 'github-metadata'
+ * };
+ *
+ * metadata(options, function(err, data) {
+ *   if (err) {
+ *     console.error(err);
+ *     return;
+ *   }
+ *   console.log(data);
+ *   //=> {
+ *   //=>   site: {
+ *   //=>     github: {
+ *   //=>       // this object contains all of the metadata that was gather from GitHub
+ *   //=>     }
+ *   //=>   }
+ *   //=> }
+ * });
+ * ```
+ *
+ * @name metadata
+ * @param  {Object} `options` Options object containing authentication and repository details.
+ * @param  {String} `options.owner` The user or organization that owns the repository. This is the first path segment after "https://github.com/".
+ * @param  {String} `options.repo` The repository name to get metadata for. This is the second path segment after "https://github.com/".
+ * @param  {String} `options.username` Optionally supply a GitHub username for authentication. This is only necessary when using `username/password` for authentication.
+ * @param  {String} `options.password` Optionally supply a GitHub password for authentication. This is only necessary when using `username/password` for authentication.
+ * @param  {String} `options.token` Optionally supply a GitHub [personal access token](https://github.com/settings/tokens) for authentication. This is only necessary with using oauth (instead of `username/password`) for authentication.
+ * @param  {Function} `cb` Callback function that will receive `err` and `data` arguments. `err` will be undefined if there were no errors.
+ * @api public
+ */
+
 module.exports = function(options, cb) {
   var opts = extend({}, options);
   var context = {};
