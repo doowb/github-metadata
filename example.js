@@ -17,6 +17,6 @@ githubAuth()
         console.error(err);
         return;
       }
-      console.log(data);
+      console.log(JSON.stringify(data, null, 2));
     });
   })
