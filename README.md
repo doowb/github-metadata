@@ -1,9 +1,8 @@
-# github-metadata [![NPM version](https://img.shields.io/npm/v/github-metadata.svg?style=flat)](https://www.npmjs.com/package/github-metadata) [![NPM monthly downloads](https://img.shields.io/npm/dm/github-metadata.svg?style=flat)](https://npmjs.org/package/github-metadata)  [![NPM total downloads](https://img.shields.io/npm/dt/github-metadata.svg?style=flat)](https://npmjs.org/package/github-metadata)
+# github-metadata [![NPM version](https://img.shields.io/npm/v/github-metadata.svg?style=flat)](https://www.npmjs.com/package/github-metadata) [![NPM monthly downloads](https://img.shields.io/npm/dm/github-metadata.svg?style=flat)](https://npmjs.org/package/github-metadata)  [![NPM total downloads](https://img.shields.io/npm/dt/github-metadata.svg?style=flat)](https://npmjs.org/package/github-metadata)  
 
 > Gather GitHub metadata about a repository.
 
 ## Install
-
 Install with [npm](https://www.npmjs.com/):
 
 ```sh
@@ -25,18 +24,17 @@ var metadata = require('github-metadata');
 ## API
 
 ### [.metadata](index.js#L50)
-
 Gather GitHub metadata for the specified repository. This attempts to get the same metadata that's used by Jekyll and specified in the [Github docs](https://help.github.com/articles/repository-metadata-on-github-pages/). Some of the metadata requires authenticating which requires either passing a `username` and `password` or `token` on the `options` object. It's best to use a [personal access token](https://github.com/settings/tokens) from GitHub. See the [results](#results) section to see what the returned metadata object looks like
 
 **Params**
 
-* `options` **{Object}**: Options object containing authentication and repository details.
-* `options.owner` **{String}**: The user or organization that owns the repository. This is the first path segment after "https://github.com/".
-* `options.repo` **{String}**: The repository name to get metadata for. This is the second path segment after "https://github.com/".
-* `options.username` **{String}**: Optionally supply a GitHub username for authentication. This is only necessary when using `username/password` for authentication.
-* `options.password` **{String}**: Optionally supply a GitHub password for authentication. This is only necessary when using `username/password` for authentication.
-* `options.token` **{String}**: Optionally supply a GitHub [personal access token](https://github.com/settings/tokens) for authentication. This is only necessary with using oauth (instead of `username/password`) for authentication.
-* `cb` **{Function}**: Callback function that will receive `err` and `data` arguments. `err` will be undefined if there were no errors.
+* `options` **{Object}**: Options object containing authentication and repository details.    
+* `options.owner` **{String}**: The user or organization that owns the repository. This is the first path segment after "https://github.com/".    
+* `options.repo` **{String}**: The repository name to get metadata for. This is the second path segment after "https://github.com/".    
+* `options.username` **{String}**: Optionally supply a GitHub username for authentication. This is only necessary when using `username/password` for authentication.    
+* `options.password` **{String}**: Optionally supply a GitHub password for authentication. This is only necessary when using `username/password` for authentication.    
+* `options.token` **{String}**: Optionally supply a GitHub [personal access token](https://github.com/settings/tokens) for authentication. This is only necessary with using oauth (instead of `username/password`) for authentication.    
+* `cb` **{Function}**: Callback function that will receive `err` and `data` arguments. `err` will be undefined if there were no errors.    
 
 **Example**
 
@@ -64,7 +62,6 @@ metadata(options, function(err, data) {
 ```
 
 ## Results
-
 The following object represents the GitHub metadata that is returned for the [assemble/assemble](https://github.com/assemble/assemble) repository. The items from the properties that contain long arrays have been removed and replaced with `...`. See the [full JSON object](docs/results.json) and the [GitHub API documentation](https://developer.github.com/v3/) for more information about the items in those arrays.
 
 ```js
@@ -268,15 +265,20 @@ The following object represents the GitHub metadata that is returned for the [as
 ```
 
 ## About
+### Related projects
+- [assemble](https://www.npmjs.com/package/assemble): Get the rocks out of your socks! Assemble makes you fast at creating web projects… [more](https://github.com/assemble/assemble) | [homepage](https://github.com/assemble/assemble "Get the rocks out of your socks! Assemble makes you fast at creating web projects. Assemble is used by thousands of projects for rapid prototyping, creating themes, scaffolds, boilerplates, e-books, UI components, API documentation, blogs, building websit")
+- [github-base](https://www.npmjs.com/package/github-base): JavaScript wrapper that greatly simplifies working with GitHub's API. | [homepage](https://github.com/jonschlinkert/github-base "JavaScript wrapper that greatly simplifies working with GitHub's API.")
 
 ### Contributing
-
 Pull requests and stars are always welcome. For bugs and feature requests, [please create an issue](../../issues/new).
 
 Please read the [contributing guide](.github/contributing.md) for advice on opening issues, pull requests, and coding standards.
 
-### Building docs
+### Contributors
 
+### Release history
+
+### Building docs
 _(This project's readme.md is generated by [verb](https://github.com/verbose/verb-generate-readme), please don't edit the readme directly. Any changes to the readme must be made in the [.verb.md](.verb.md) readme template.)_
 
 To generate the readme, run the following command:
@@ -294,17 +296,16 @@ $ npm install && npm test
 ```
 
 ### Author
-
 **Brian Woodward**
 
-* [github/doowb](https://github.com/doowb)
-* [twitter/doowb](https://twitter.com/doowb)
++ [github/doowb](https://github.com/doowb)
++ [twitter/doowb](https://twitter.com/doowb)
 
 ### License
-
 Copyright © 2017, [Brian Woodward](https://doowb.com).
 Released under the [MIT License](LICENSE).
 
 ***
 
 _This file was generated by [verb-generate-readme](https://github.com/verbose/verb-generate-readme), v0.6.0, on June 14, 2017._
+
