@@ -38,7 +38,8 @@
   ],
   "devDependencies": {
     "bot-github-auth": "^0.1.0",
-    "gulp-format-md": "^0.1.12"
+    "gulp-format-md": "^0.1.12",
+    "mocha": "^3.4.2"
   },
   "verb": {
     "toc": false,

@@ -124,7 +124,7 @@ function createPagesData(options) {
     setValue(pages, 'subdomain_isolation', env('SUBDOMAIN_ISOLATION'));
     setValue(pages, 'custom_domains_enabled', pages.dotcom || pages.test);
     setValue(pages, 'github_hostname', env('PAGES_GITHUB_HOSTNAME', env('GITHUB_HOSTNAME', 'github.com')));
-    setValue(pages, 'pages_hostname', env('PAGES_PAGES_HOSTNAME', pages.development ? 'localhost:4000' : env('PAGES_HOSTNAME', 'github.io')));
+    setValue(pages, 'pages_hostname', env('PAGES_PAGES_HOSTNAME', env('PAGES_HOSTNAME', 'github.io')));
     setValue(pages, 'github_url', pages.dotcom ? 'https://github.com' : `${pages.schema}://${pages.github_hostname}`);
     setValue(pages, 'api_url', env('PAGES_API_URL', env('API_URL', 'https://api.github.com')));
     setValue(pages, 'help_url', env('PAGES_HELP_URL', env('HELP_URL', 'https://help.github.com')));
@@ -168,7 +168,6 @@ function copyProperties(options) {
     var repoProps = {
       'name': ['site.github.project_title', 'site.github.repository_name'],
       'full_name': 'site.github.repository_nwo',
-      'description': 'site.github.project_tagline',
       'owner.login': 'site.github.owner_name',
       'owner.avatar_url': 'site.github.owner_gravatar_url',
       'html_url': ['site.github.repository_url', 'site.github.url'],
@@ -202,6 +201,7 @@ function copyProperties(options) {
     var gitRef = koalas(getValue(pagesInfo, 'source.branch'), userPage ? 'master' : 'gh_pages');
 
     // set computed properties
+    setValue(context, 'site.github.project_tagline', koalas(getValue(repo, 'description'), ''));
     setValue(context, 'site.github.owner_url', ownerUrl);
     setValue(context, 'site.github.owner_gravatar_url', `${ownerUrl}.png}`);
     setValue(context, 'site.github.zip_url', `${repoUrl}/zipball/${gitRef}`);
