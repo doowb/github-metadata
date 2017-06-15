@@ -27,7 +27,13 @@
     "set-value": "^1.0.0"
   },
   "keywords": [
+    "api",
+    "assemble",
     "github",
+    "github-metadata",
+    "github-base",
+    "github-api",
+    "jekyll",
     "metadata"
   ],
   "devDependencies": {
@@ -43,6 +49,12 @@
     "plugins": [
       "gulp-format-md"
     ],
+    "related": {
+      "list": [
+        "github-base",
+        "assemble"
+      ]
+    },
     "lint": {
       "reflinks": true
     }
