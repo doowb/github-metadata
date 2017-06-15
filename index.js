@@ -33,6 +33,16 @@ module.exports = function(options, cb) {
     .catch(cb);
 };
 
+/**
+ * Determine if the `owner` is an organization or not.
+ * Get the public repositories for the `owner` and the organization members
+ * if the `owner` is an organization.
+ *
+ * @param  {Object} `github` github-base instance
+ * @param  {Object} `options` Options with `owner` property
+ * @return {Function} Returns a function to be used in the Promise chain that takes a `context` to populate with information
+ */
+
 function orgData(github, options) {
   var opts = extend({}, options);
   return function(context) {
@@ -51,6 +61,13 @@ function orgData(github, options) {
       });
   };
 }
+
+/**
+ * Gather `pages` data from the environment to be used in other places.
+ *
+ * @param  {Object} `options` Options to be used in computed values.
+ * @return {Function} Returns a function to be used in the Promise chain. The function takes a context to add computed values to
+ */
 
 function createPagesData(options) {
   var opts = extend({}, options);
@@ -77,9 +94,19 @@ function createPagesData(options) {
   };
 }
 
+/**
+ * Copy properties from objects on the `context` to other properties on the `context`.
+ * The new properties are the normalized values that github pages would expected.
+ *
+ * @param  {Object} `options` Options used when computing values.
+ * @return {Function} Returns a function to be used in the Promise chain. The function takes a context to add computed values to.
+ */
+
 function copyProperties(options) {
   var opts = extend({}, options);
   return function(context) {
+
+    // setup properties to be copied from the `pages` object (created above)
     var pages = extend({}, getValue(context, 'site.github.pages'));
     var pagesProps = {
       'github_hostname': 'site.github.hostname',
@@ -89,11 +116,13 @@ function copyProperties(options) {
       'env': ['site.github.environment', 'site.github.pages_env']
     };
 
+    // setup properties to be copied from the `pages_info` object (downloaded from github)
     var pagesInfo = extend({}, getValue(context, 'site.github.pages_info'));
     var pagesInfoProps = {
       cname: 'site.github.url'
     };
 
+    // setup properties to be copied from the `repository` object (downloaded from github)
     var repo = extend({}, getValue(context, 'site.github.repository'));
     var repoProps = {
       'name': ['site.github.project_title', 'site.github.repository_name'],
@@ -106,13 +135,13 @@ function copyProperties(options) {
       'has_downloads': 'site.github.show_downloads'
     };
 
+    // copy all of the properties setup above
     copyAll(pages, context, pagesProps);
     copyAll(pagesInfo, context, pagesInfoProps);
     copyAll(repo, context, repoProps);
 
-    setValue(context, 'site.github.owner_url', `${getValue(pages, 'github_url')}/${opts.owner}`);
-    setValue(context, 'site.github.owner_gravatar_url', `${getValue(context, 'site.github.owner_url')}.png}`);
-
+    // compute intermidate variables to be used in computed properties
+    var ownerUrl = `${getValue(pages, 'github_url')}/${opts.owner}`;
     var githubRepo = !pages.enterprise && opts.owner === 'github';
     var defaultUserDomain = githubRepo
       ? `${opts.owner}.${pages.github_hostname}`
@@ -128,9 +157,12 @@ function copyProperties(options) {
       : userPageDomains.indexOf(repo.name.toLowerCase()) !== -1;
 
     var userPage = primary;
-    var repoUrl = `${getValue(context, 'site.github.owner_url')}/${repo.name}`;
+    var repoUrl = `${ownerUrl}/${repo.name}`;
     var gitRef = koalas(getValue(pagesInfo, 'source.branch'), userPage ? 'master' : 'gh_pages');
 
+    // set computed properties
+    setValue(context, 'site.github.owner_url', ownerUrl);
+    setValue(context, 'site.github.owner_gravatar_url', `${ownerUrl}.png}`);
     setValue(context, 'site.github.zip_url', `${repoUrl}/zipball/${gitRef}`);
     setValue(context, 'site.github.tar_url', `${repoUrl}/tarball/${gitRef}`);
     setValue(context, 'site.github.clone_url', `${repoUrl}.git`);
@@ -144,6 +176,25 @@ function copyProperties(options) {
     return context;
   };
 }
+
+/**
+ * Get paged results from the github api.
+ * Use this when the expected value from github is an array of items.
+ *
+ * ```js
+ * Promise.resolve({})
+ *   .then(paged(github, 'repositories', '/users/:owner/repos', {owner: 'doowb'}))
+ *   .then(function(context) {
+ *     console.log(context);
+ *     //=> {repositories: [ ... ]}
+ *   });
+ * ```
+ * @param  {Object} `github` github-base instance.
+ * @param  {String} `prop` Property to use when setting the results on the context.
+ * @param  {String} `path` github api path to use to get results.
+ * @param  {Object} `options` Options used for replacing path placeholders.
+ * @return {Function} Returns a function to be used in a Promise chain. Takes a `context` object to set the results on.
+ */
 
 function paged(github, prop, path, options) {
   var opts = extend({}, options);
@@ -161,6 +212,25 @@ function paged(github, prop, path, options) {
   };
 }
 
+/**
+ * Get results from the github api.
+ * Use this when the expected value from github is an object (for a single item).
+ *
+ * ```js
+ * Promise.resolve({})
+ *   .then(paged(github, 'org', '/orgs/:owner', {owner: 'assemble'}))
+ *   .then(function(context) {
+ *     console.log(context);
+ *     //=> {org: { ... }}
+ *   });
+ * ```
+ * @param  {Object} `github` github-base instance.
+ * @param  {String} `prop` Property to use when setting the results on the context.
+ * @param  {String} `path` github api path to use to get results.
+ * @param  {Object} `options` Options used for replacing path placeholders.
+ * @return {Function} Returns a function to be used in a Promise chain. Takes a `context` object to set the results on.
+ */
+
 function get(github, prop, path, options) {
   var opts = extend({}, options);
   return function(context) {
@@ -177,26 +247,54 @@ function get(github, prop, path, options) {
   };
 }
 
+/**
+ * Helper function for getting a value from `process.env` or using the provided `fallback`.
+ *
+ * ```js
+ * var val = env('GITHUB_HOSTNAME', 'github.com');
+ * ```
+ * @param  {String} `key` key used to lookup a value from `process.env`.
+ * @param  {Mixed} `fallback` Default to fallback on when the value is not on `process.env`.
+ * @return {Mixed} Either the value if found on `process.env` or the `fallback`.
+ */
+
 function env(key, fallback) {
   return koalas(process.env[key], fallback);
 }
 
-function copy(provider, reciever, from, to) {
+/**
+ * Copy a property from the `provider` to the `receiver`.
+ *
+ * @param  {Object} `provider` Object with the property being copied.
+ * @param  {Object} `receiver` Object that will receive the copied property.
+ * @param  {String} `from` Name of the property to copy from the provider.
+ * @param  {String|Array} `to` Name of the property or properties to set on the receiver.
+ */
+
+function copy(provider, receiver, from, to) {
   if (Array.isArray(to)) {
     to.forEach(function(prop) {
-      copy(provider, reciever, from, prop);
+      copy(provider, receiver, from, prop);
     });
     return;
   }
-  setValue(reciever, to, getValue(provider, from));
+  setValue(receiver, to, getValue(provider, from));
 }
 
-function copyAll(provider, reciever, props) {
+/**
+ * Copy many properties from the provider to the receiver.
+ *
+ * @param  {Object} `provider` Object with the properties to copy.
+ * @param  {Object} `receiver` Object that will receive the properties.
+ * @param  {Object} `props` Object of `from` => `to` properties to copy many properties.
+ */
+
+function copyAll(provider, receiver, props) {
   var keys = Object.keys(props);
   var len = keys.length;
   for (var i = 0; i < len; i++) {
     var key = keys[i];
-    copy(provider, reciever, key, props[key]);
+    copy(provider, receiver, key, props[key]);
   }
 }
 
