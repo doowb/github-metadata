@@ -27,11 +27,7 @@ var koalas = require('koalas');
  *   }
  *   console.log(data);
  *   //=> {
- *   //=>   site: {
- *   //=>     github: {
- *   //=>       // this object contains all of the metadata that was gather from GitHub
- *   //=>     }
- *   //=>   }
+ *   //=>   // this object contains all of the metadata that was gather from GitHub
  *   //=> }
  * });
  * ```
@@ -57,15 +53,15 @@ module.exports = function(options, cb) {
 
   Promise.resolve(context)
     .then(orgData(github, opts))
-    .then(pagedData('site.github.contributors', '/repos/:owner/:repo/contributors', opts))
-    .then(pagedData('site.github.collaborators', '/repos/:owner/:repo/collaborators', opts))
-    .then(pagedData('site.github.branches', '/repos/:owner/:repo/branches', opts))
-    .then(getData('site.github.languages', '/repos/:owner/:repo/languages', opts))
-    .then(pagedData('site.github.teams', '/repos/:owner/:repo/teams', opts))
-    .then(pagedData('site.github.releases', '/repos/:owner/:repo/releases', opts))
-    .then(pagedData('site.github.tags', '/repos/:owner/:repo/tags', opts))
-    .then(getData('site.github.repository', '/repos/:owner/:repo', opts))
-    .then(getData('site.github.pages_info', '/repos/:owner/:repo/pages', opts))
+    .then(pagedData('contributors', '/repos/:owner/:repo/contributors', opts))
+    .then(pagedData('collaborators', '/repos/:owner/:repo/collaborators', opts))
+    .then(pagedData('branches', '/repos/:owner/:repo/branches', opts))
+    .then(getData('languages', '/repos/:owner/:repo/languages', opts))
+    .then(pagedData('teams', '/repos/:owner/:repo/teams', opts))
+    .then(pagedData('releases', '/repos/:owner/:repo/releases', opts))
+    .then(pagedData('tags', '/repos/:owner/:repo/tags', opts))
+    .then(getData('repository', '/repos/:owner/:repo', opts))
+    .then(getData('pages_info', '/repos/:owner/:repo/pages', opts))
     .then(createPagesData(opts))
     .then(copyProperties(opts))
     .then(function(context) {
@@ -93,12 +89,12 @@ function orgData(github, options) {
         var err = getValue(orgInfo, 'org.message');
         if (err && err === 'Not Found') {
           return Promise.resolve(context)
-            .then(paged(github, 'site.github.public_repositories', '/users/:owner/repos', opts));
+            .then(paged(github, 'public_repositories', '/users/:owner/repos', opts));
         }
 
         return Promise.resolve(context)
-          .then(paged(github, 'site.github.public_repositories', '/orgs/:owner/repos', opts))
-          .then(paged(github, 'site.github.organization_members', '/orgs/:owner/members', opts));
+          .then(paged(github, 'public_repositories', '/orgs/:owner/repos', opts))
+          .then(paged(github, 'organization_members', '/orgs/:owner/members', opts));
       });
   };
 }
@@ -130,7 +126,7 @@ function createPagesData(options) {
     setValue(pages, 'help_url', env('PAGES_HELP_URL', env('HELP_URL', 'https://help.github.com')));
     setValue(pages, 'pages_build', env('PAGES_BUILD_ID'));
 
-    setValue(context, 'site.github.pages', pages);
+    setValue(context, 'pages', pages);
     return context;
   };
 }
@@ -148,31 +144,31 @@ function copyProperties(options) {
   return function(context) {
 
     // setup properties to be copied from the `pages` object (created above)
-    var pages = extend({}, getValue(context, 'site.github.pages'));
+    var pages = extend({}, getValue(context, 'pages'));
     var pagesProps = {
-      'github_hostname': 'site.github.hostname',
-      'pages_hostname': 'site.github.pages_hostname',
-      'api_url': 'site.github.api_url',
-      'help_url': 'site.github.help_url',
-      'env': ['site.github.environment', 'site.github.pages_env']
+      'github_hostname': 'hostname',
+      'pages_hostname': 'pages_hostname',
+      'api_url': 'api_url',
+      'help_url': 'help_url',
+      'env': ['environment', 'pages_env']
     };
 
     // setup properties to be copied from the `pages_info` object (downloaded from github)
-    var pagesInfo = extend({}, getValue(context, 'site.github.pages_info'));
+    var pagesInfo = extend({}, getValue(context, 'pages_info'));
     var pagesInfoProps = {
-      cname: 'site.github.url'
+      cname: 'url'
     };
 
     // setup properties to be copied from the `repository` object (downloaded from github)
-    var repo = extend({}, getValue(context, 'site.github.repository'));
+    var repo = extend({}, getValue(context, 'repository'));
     var repoProps = {
-      'name': ['site.github.project_title', 'site.github.repository_name'],
-      'full_name': 'site.github.repository_nwo',
-      'owner.login': 'site.github.owner_name',
-      'owner.avatar_url': 'site.github.owner_gravatar_url',
-      'html_url': ['site.github.repository_url', 'site.github.url'],
-      'language': 'site.github.language',
-      'has_downloads': 'site.github.show_downloads'
+      'name': ['project_title', 'repository_name'],
+      'full_name': 'repository_nwo',
+      'owner.login': 'owner_name',
+      'owner.avatar_url': 'owner_gravatar_url',
+      'html_url': ['repository_url', 'url'],
+      'language': 'language',
+      'has_downloads': 'show_downloads'
     };
 
     // copy all of the properties setup above
@@ -201,19 +197,19 @@ function copyProperties(options) {
     var gitRef = koalas(getValue(pagesInfo, 'source.branch'), userPage ? 'master' : 'gh_pages');
 
     // set computed properties
-    setValue(context, 'site.github.project_tagline', koalas(getValue(repo, 'description'), ''));
-    setValue(context, 'site.github.owner_url', ownerUrl);
-    setValue(context, 'site.github.owner_gravatar_url', `${ownerUrl}.png}`);
-    setValue(context, 'site.github.zip_url', `${repoUrl}/zipball/${gitRef}`);
-    setValue(context, 'site.github.tar_url', `${repoUrl}/tarball/${gitRef}`);
-    setValue(context, 'site.github.clone_url', `${repoUrl}.git`);
-    setValue(context, 'site.github.releases_url', `${repoUrl}/releases`);
-    setValue(context, 'site.github.issues_url', `${repoUrl}/issues`);
+    setValue(context, 'project_tagline', koalas(getValue(repo, 'description'), ''));
+    setValue(context, 'owner_url', ownerUrl);
+    setValue(context, 'owner_gravatar_url', `${ownerUrl}.png}`);
+    setValue(context, 'zip_url', `${repoUrl}/zipball/${gitRef}`);
+    setValue(context, 'tar_url', `${repoUrl}/tarball/${gitRef}`);
+    setValue(context, 'clone_url', `${repoUrl}.git`);
+    setValue(context, 'releases_url', `${repoUrl}/releases`);
+    setValue(context, 'issues_url', `${repoUrl}/issues`);
     if (repo.has_wiki) {
-      setValue(context, 'site.github.wiki_url', `${repoUrl}/wiki`);
+      setValue(context, 'wiki_url', `${repoUrl}/wiki`);
     }
-    setValue(context, 'site.github.is_user_page', userPage);
-    setValue(context, 'site.github.is_project_page', !userPage);
+    setValue(context, 'is_user_page', userPage);
+    setValue(context, 'is_project_page', !userPage);
     return context;
   };
 }
