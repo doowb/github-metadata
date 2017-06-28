@@ -1,4 +1,6 @@
 environment:
+  GITHUB_TOKEN:
+    secure: dgrPbnobrGhgoxC1D8WIA7iasLpFCIGKrLgZNBQ2J0xZBrprEsMHPDPxmnXmkdcz
   matrix:
     - nodejs_version: '8'
     - nodejs_version: '7'
