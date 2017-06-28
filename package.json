@@ -34,12 +34,24 @@
   "keywords": [
     "api",
     "assemble",
+    "base",
+    "generate",
+    "generator",
     "github",
     "github-api",
     "github-base",
     "github-metadata",
     "jekyll",
-    "metadata"
+    "metadata",
+    "page",
+    "pages",
+    "post",
+    "posts",
+    "site",
+    "static",
+    "static-site",
+    "update",
+    "updater"
   ],
   "verb": {
     "toc": false,
