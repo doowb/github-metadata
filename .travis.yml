@@ -1,12 +1,15 @@
 sudo: false
 os:
-  - linux
-  - osx
+- linux
+- osx
 language: node_js
 node_js:
-  - node
-  - '8'
-  - '7'
-  - '6'
-  - '5'
-  - '4'
+- node
+- '8'
+- '7'
+- '6'
+- '5'
+- '4'
+env:
+  global:
+    secure: qyQg2s5L9IvRU2ChLSjztbAUQVseVcpiTh+oC4RdO8sas55j6lx2qsB0eb5Q7jUoXivw3Iqz3xQmh+WdeJdDrQAZE+eL9y2H5HTIbsWLiFUIFTDwm9N84wplIk8ViGw8giMX+LBwz3lUCaTURnHrI0Lh9/wQ8R4gk+oXS8GH8C9ZaXADaaaRrUlDA0ip+xgAzrvnbiLRxfDXCuQWycIYsj7LU21WaIkK92OV5Kl7KbDbHSF2rAQ5vDk1mmiPKDmN0zk7b/sYGLQ6Df/P1N1M5CBXrkZOtEyaLidIZVsyiTm9zYdQ3PPy1vn0+UrescWJrDbojyG0LyH64tx/x/zepLKht1ud+5ghMEBzCMOBiLbXCwLF6jsuOusIpuCmZtgbtDdrwsviWcgRIHj9ODT6CfW+UlFQbOG0FOL60IVpWyFkZ02XHQdj/0zuwjFg9NnbonJR2ILK0moKt5Y6ZMDu6YZeuoubO1kjgmIZ2FlhPFrYqFvbIBjFltQkrE12JFaSFSXrHdktACmw7frwUvKn/uKHg5qeV9JDj2ru3YnKTyxeDpuQ6mejUVFlqwq3+QABJxrFXQOQWLgZ01X1ZjmXY3KU9Cs+US+IUnAWGdIUn5LlWhvM8CvFNpatem1j9Xoxt6KGAhQQSBSUop2ukAQbWZwqAh2nKxbjHYWtRtPEy9U=
