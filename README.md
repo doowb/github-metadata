@@ -24,7 +24,7 @@ var metadata = require('github-metadata');
 
 ## API
 
-### [metadata](index.js#L47)
+### [metadata](index.js#L45)
 
 Gather GitHub metadata for the specified repository. This attempts to get the same metadata that's used by Jekyll and specified in the [Github docs](https://help.github.com/articles/repository-metadata-on-github-pages/). Some of the metadata requires authenticating which requires either passing a `username` and `password` or `token` on the `options` object. It's best to use a [personal access token](https://github.com/settings/tokens) from GitHub. See the [results](#results) section to see what the returned metadata object looks like
 
@@ -37,7 +37,7 @@ Gather GitHub metadata for the specified repository. This attempts to get the sa
 * `options.username` **{String}**: Optionally supply a GitHub username for authentication. This is only necessary when using `username/password` for authentication.
 * `options.password` **{String}**: Optionally supply a GitHub password for authentication. This is only necessary when using `username/password` for authentication.
 * `options.token` **{String}**: Optionally supply a GitHub [personal access token](https://github.com/settings/tokens) for authentication. This is only necessary with using oauth (instead of `username/password`) for authentication.
-* `cb` **{Function}**: Callback function that will receive `err` and `data` arguments. `err` will be undefined if there were no errors.
+* `returns` **{Promise}**: Returns a Promise that will have the repositories metadata when resolved.
 
 **Example**
 
@@ -48,16 +48,14 @@ var options = {
   repo: 'github-metadata'
 };
 
-metadata(options, function(err, data) {
-  if (err) {
-    console.error(err);
-    return;
-  }
-  console.log(data);
-  //=> {
-  //=>   // this object contains all of the metadata that was gather from GitHub
-  //=> }
-});
+metadata(options)
+  .then(function(data) {
+    console.log(data);
+    //=> {
+    //=>   // this object contains all of the metadata that was gather from GitHub
+    //=> }
+  })
+  .catch(console.error);
 ```
 
 ## Results
