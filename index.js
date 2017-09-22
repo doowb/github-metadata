@@ -1,5 +1,6 @@
 'use strict';
 
+var GitHubContent = require('github-content');
 var extend = require('extend-shallow');
 var GitHub = require('github-base');
 var setValue = require('set-value');
@@ -47,6 +48,7 @@ module.exports = function metadata(options) {
   var context = {};
 
   var github = new GitHub(opts);
+  var content = new GitHubContent(opts);
   var pagedData = paged.bind(null, github);
   var getData = get.bind(null, github);
 
@@ -67,6 +69,7 @@ module.exports = function metadata(options) {
     .then(pagedData('tags', '/repos/:owner/:repo/tags', opts))
     .then(getData('repository', '/repos/:owner/:repo', opts))
     .then(getData('pages_info', '/repos/:owner/:repo/pages', opts))
+    .then(file(content, 'package', 'package.json', opts))
     .then(createPagesData(opts))
     .then(copyProperties(opts));
 };
@@ -298,6 +301,66 @@ function get(github, prop, path, options) {
       });
     });
   };
+}
+
+/**
+ * Get a file from GitHub content
+ *
+ * ```js
+ * Promise.resolve({})
+ *   .then(file(content, 'package', 'package.json', {owner: 'assemble', repo: 'assemble'}))
+ *   .then(function(context) {
+ *     console.log(context);
+ *     //=> {package: { ... }}
+ *   });
+ * ```
+ * @param  {Object} `github` github-content instance.
+ * @param  {String} `prop` Property to use when setting the results on the context.
+ * @param  {String} `path` github content path to use to get the file.
+ * @param  {Object} `options` Options used for replacing path placeholders.
+ * @return {Function} Returns a function to be used in a Promise chain. Takes a `context` object to set the results on.
+ */
+
+function file(github, prop, path, options) {
+  var opts = extend({}, options);
+  return function(context) {
+    return new Promise(function(resolve, reject) {
+      if (exclude(prop, opts)) {
+        resolve(context);
+        return;
+      }
+
+      github.file(path, opts, function(err, res) {
+        if (err) {
+          reject(err);
+          return;
+        }
+        setValue(context, prop, transform(res));
+        resolve(context);
+      });
+    });
+  };
+}
+
+/**
+ * Transform function used in `file` to transform the contents from the
+ * results object into a JavaScript object. If the file was not found
+ * an empty object is returned.
+ *
+ * @param  {Object} `res` results from `file` with `path` and `contents` properties.
+ * @return {Object} The resulting object of calling `JSON.parse` on `res.contents`.
+ */
+
+function transform(res) {
+  var contents = res.contents.toString();
+  if (contents.indexOf('404:') === 0) {
+    return {};
+  }
+  try {
+    return JSON.parse(contents);
+  } catch (err) {
+    return {};
+  }
 }
 
 /**

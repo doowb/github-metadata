@@ -48,6 +48,8 @@ describe('github-metadata', function() {
         assert.equal(typeof data.languages, 'object');
         assert.equal(typeof data.repository, 'object');
         assert.equal(typeof data.pages_info, 'object');
+        assert.equal(typeof data.package, 'object');
+        assert.equal(typeof data.package.name, 'undefined');
         assert.equal(typeof data.pages, 'object');
         assert.equal(typeof data.hostname, 'string');
         assert.equal(typeof data.pages_hostname, 'string');
@@ -97,6 +99,8 @@ describe('github-metadata', function() {
         assert.equal(typeof data.languages, 'object');
         assert.equal(typeof data.repository, 'object');
         assert.equal(typeof data.pages_info, 'object');
+        assert.equal(typeof data.package, 'object');
+        assert.equal(typeof data.package.name, 'undefined');
         assert.equal(typeof data.pages, 'object');
         assert.equal(typeof data.hostname, 'string');
         assert.equal(typeof data.pages_hostname, 'string');
@@ -146,6 +150,8 @@ describe('github-metadata', function() {
         assert.equal(typeof data.languages, 'object');
         assert.equal(typeof data.repository, 'object');
         assert.equal(typeof data.pages_info, 'object');
+        assert.equal(typeof data.package, 'object');
+        assert.equal(typeof data.package.name, 'string');
         assert.equal(typeof data.pages, 'object');
         assert.equal(typeof data.hostname, 'string');
         assert.equal(typeof data.pages_hostname, 'string');
@@ -195,6 +201,8 @@ describe('github-metadata', function() {
         assert.equal(typeof data.languages, 'object');
         assert.equal(typeof data.repository, 'object');
         assert.equal(typeof data.pages_info, 'object');
+        assert.equal(typeof data.package, 'object');
+        assert.equal(typeof data.package.name, 'string');
         assert.equal(typeof data.pages, 'object');
         assert.equal(typeof data.hostname, 'string');
         assert.equal(typeof data.pages_hostname, 'string');
