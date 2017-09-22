@@ -21,64 +21,54 @@ var https = require('https');
  *   repo: 'github-metadata'
  * };
  *
- * metadata(options, function(err, data) {
- *   if (err) {
- *     console.error(err);
- *     return;
- *   }
- *   console.log(data);
- *   //=> {
- *   //=>   // this object contains all of the metadata that was gather from GitHub
- *   //=> }
- * });
+ * metadata(options)
+ *   .then(function(data) {
+ *     console.log(data);
+ *     //=> {
+ *     //=>   // this object contains all of the metadata that was gather from GitHub
+ *     //=> }
+ *   })
+ *   .catch(console.error);
  * ```
  *
- * @param {Object} `options` Options object containing authentication and repository details.
- * @param {String} `options.owner` The user or organization that owns the repository. This is the first path segment after "https://github.com/".
- * @param {String} `options.repo` The repository name to get metadata for. This is the second path segment after "https://github.com/".
- * @param {Array}  `options.exclude` Optionally pass a list of top-level properties to exclude from the metadata by not downloading it from GitHub.
- * @param {String} `options.username` Optionally supply a GitHub username for authentication. This is only necessary when using `username/password` for authentication.
- * @param {String} `options.password` Optionally supply a GitHub password for authentication. This is only necessary when using `username/password` for authentication.
- * @param {String} `options.token` Optionally supply a GitHub [personal access token](https://github.com/settings/tokens) for authentication. This is only necessary with using oauth (instead of `username/password`) for authentication.
- * @param {Function} `cb` Callback function that will receive `err` and `data` arguments. `err` will be undefined if there were no errors.
+ * @param  {Object} `options` Options object containing authentication and repository details.
+ * @param  {String} `options.owner` The user or organization that owns the repository. This is the first path segment after "https://github.com/".
+ * @param  {String} `options.repo` The repository name to get metadata for. This is the second path segment after "https://github.com/".
+ * @param  {Array}  `options.exclude` Optionally pass a list of top-level properties to exclude from the metadata by not downloading it from GitHub.
+ * @param  {String} `options.username` Optionally supply a GitHub username for authentication. This is only necessary when using `username/password` for authentication.
+ * @param  {String} `options.password` Optionally supply a GitHub password for authentication. This is only necessary when using `username/password` for authentication.
+ * @param  {String} `options.token` Optionally supply a GitHub [personal access token](https://github.com/settings/tokens) for authentication. This is only necessary with using oauth (instead of `username/password`) for authentication.
+ * @return {Promise} Returns a Promise that will have the repositories metadata when resolved.
  * @api public
  */
 
-module.exports = function metadata(options, cb) {
+module.exports = function metadata(options) {
   var opts = extend({}, options);
   var context = {};
 
-  repoExists(`https://github.com/${opts.owner}/${opts.repo}`, function(err, exists) {
-    if (err) {
-      return cb(err);
-    }
-    if (!exists) {
-      cb(new Error(`Unable to find repository "${opts.owner}/${opts.repo}"`));
-      return;
-    }
+  var github = new GitHub(opts);
+  var pagedData = paged.bind(null, github);
+  var getData = get.bind(null, github);
 
-    var github = new GitHub(opts);
-    var pagedData = paged.bind(null, github);
-    var getData = get.bind(null, github);
-
-    Promise.resolve(context)
-      .then(orgData(github, opts))
-      .then(pagedData('contributors', '/repos/:owner/:repo/contributors', opts))
-      .then(pagedData('collaborators', '/repos/:owner/:repo/collaborators', opts))
-      .then(pagedData('branches', '/repos/:owner/:repo/branches', opts))
-      .then(getData('languages', '/repos/:owner/:repo/languages', opts))
-      .then(pagedData('teams', '/repos/:owner/:repo/teams', opts))
-      .then(pagedData('releases', '/repos/:owner/:repo/releases', opts))
-      .then(pagedData('tags', '/repos/:owner/:repo/tags', opts))
-      .then(getData('repository', '/repos/:owner/:repo', opts))
-      .then(getData('pages_info', '/repos/:owner/:repo/pages', opts))
-      .then(createPagesData(opts))
-      .then(copyProperties(opts))
-      .then(function(context) {
-        cb(null, context);
-      })
-      .catch(cb);
-  });
+  return repoExists(`https://github.com/${opts.owner}/${opts.repo}`)
+    .then(function(exists) {
+      if (exists === false) {
+        throw new Error(`Unable to find repository "${opts.owner}/${opts.repo}"`);
+      }
+      return context;
+    })
+    .then(orgData(github, opts))
+    .then(pagedData('contributors', '/repos/:owner/:repo/contributors', opts))
+    .then(pagedData('collaborators', '/repos/:owner/:repo/collaborators', opts))
+    .then(pagedData('branches', '/repos/:owner/:repo/branches', opts))
+    .then(getData('languages', '/repos/:owner/:repo/languages', opts))
+    .then(pagedData('teams', '/repos/:owner/:repo/teams', opts))
+    .then(pagedData('releases', '/repos/:owner/:repo/releases', opts))
+    .then(pagedData('tags', '/repos/:owner/:repo/tags', opts))
+    .then(getData('repository', '/repos/:owner/:repo', opts))
+    .then(getData('pages_info', '/repos/:owner/:repo/pages', opts))
+    .then(createPagesData(opts))
+    .then(copyProperties(opts));
 };
 
 /**
@@ -157,6 +147,7 @@ function createPagesData(options) {
 function copyProperties(options) {
   var opts = extend({}, options);
   return function(context) {
+
 
     // setup properties to be copied from the `pages` object (created above)
     var pages = extend({}, getValue(context, 'pages'));
@@ -367,11 +358,13 @@ function copyAll(provider, receiver, props) {
  * @param  {Function} `cb` Callback with `err` and `exists` arguments.
  */
 
-function repoExists(url, cb) {
-  https.get(url, function(res) {
-    cb(null, String(res.statusCode) !== '404');
-  }).on('error', function(err) {
-    cb(null, false);
+function repoExists(url) {
+  return new Promise(function(resolve) {
+    https.get(url, function(res) {
+      resolve(String(res.statusCode) !== '404');
+    }).on('error', function(err) {
+      resolve(false);
+    });
   });
 }
 

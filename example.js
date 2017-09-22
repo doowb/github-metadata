@@ -13,11 +13,9 @@ var options = {
 githubAuth()
   .then(function(auth) {
     var opts = extend({}, options, auth);
-    metadata(opts, function(err, data) {
-      if (err) {
-        console.error(err);
-        return;
-      }
-      console.log(JSON.stringify(data, null, 2));
-    });
-  })
+    metadata(opts)
+      .then(function(data) {
+        console.log(JSON.stringify(data, null, 2));
+      })
+      .catch(console.error);
+  });
