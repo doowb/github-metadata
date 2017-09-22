@@ -33,13 +33,14 @@ var https = require('https');
  * });
  * ```
  *
- * @param  {Object} `options` Options object containing authentication and repository details.
- * @param  {String} `options.owner` The user or organization that owns the repository. This is the first path segment after "https://github.com/".
- * @param  {String} `options.repo` The repository name to get metadata for. This is the second path segment after "https://github.com/".
- * @param  {String} `options.username` Optionally supply a GitHub username for authentication. This is only necessary when using `username/password` for authentication.
- * @param  {String} `options.password` Optionally supply a GitHub password for authentication. This is only necessary when using `username/password` for authentication.
- * @param  {String} `options.token` Optionally supply a GitHub [personal access token](https://github.com/settings/tokens) for authentication. This is only necessary with using oauth (instead of `username/password`) for authentication.
- * @param  {Function} `cb` Callback function that will receive `err` and `data` arguments. `err` will be undefined if there were no errors.
+ * @param {Object} `options` Options object containing authentication and repository details.
+ * @param {String} `options.owner` The user or organization that owns the repository. This is the first path segment after "https://github.com/".
+ * @param {String} `options.repo` The repository name to get metadata for. This is the second path segment after "https://github.com/".
+ * @param {Array}  `options.exclude` Optionally pass a list of top-level properties to exclude from the metadata by not downloading it from GitHub.
+ * @param {String} `options.username` Optionally supply a GitHub username for authentication. This is only necessary when using `username/password` for authentication.
+ * @param {String} `options.password` Optionally supply a GitHub password for authentication. This is only necessary when using `username/password` for authentication.
+ * @param {String} `options.token` Optionally supply a GitHub [personal access token](https://github.com/settings/tokens) for authentication. This is only necessary with using oauth (instead of `username/password`) for authentication.
+ * @param {Function} `cb` Callback function that will receive `err` and `data` arguments. `err` will be undefined if there were no errors.
  * @api public
  */
 
@@ -93,6 +94,10 @@ module.exports = function metadata(options, cb) {
 function orgData(github, options) {
   var opts = extend({}, options);
   return function(context) {
+    if (exclude('org', opts)) {
+      return Promise.resolve(context);
+    }
+
     return Promise.resolve({})
       .then(get(github, 'org', '/orgs/:owner', opts))
       .then(function(orgInfo) {
@@ -247,6 +252,11 @@ function paged(github, prop, path, options) {
   var opts = extend({}, options);
   return function(context) {
     return new Promise(function(resolve, reject) {
+      if (exclude(prop, opts)) {
+        resolve(context);
+        return;
+      }
+
       github.paged(path, opts, function(err, data, res) {
         if (err) {
           reject(err);
@@ -282,6 +292,11 @@ function get(github, prop, path, options) {
   var opts = extend({}, options);
   return function(context) {
     return new Promise(function(resolve, reject) {
+      if (exclude(prop, opts)) {
+        resolve(context);
+        return;
+      }
+
       github.get(path, opts, function(err, data, res) {
         if (err) {
           reject(err);
@@ -358,4 +373,12 @@ function repoExists(url, cb) {
   }).on('error', function(err) {
     cb(null, false);
   });
+}
+
+function exclude(prop, options) {
+  if (typeof options.exclude === 'undefined' || !Array.isArray(options.exclude)) {
+    return false;
+  }
+
+  return options.exclude.indexOf(prop) !== -1;
 }

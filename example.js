@@ -6,7 +6,8 @@ var metadata = require('./');
 
 var options = {
   owner: 'assemble',
-  repo: 'assemble'
+  repo: 'assemble',
+  exclude: ['org'] // don't get org information
 };
 
 githubAuth()
