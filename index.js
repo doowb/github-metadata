@@ -5,6 +5,7 @@ var GitHub = require('github-base');
 var setValue = require('set-value');
 var getValue = require('get-value');
 var koalas = require('koalas');
+var https = require('https');
 
 /**
  * Gather GitHub metadata for the specified repository. This attempts to get the same metadata
@@ -46,27 +47,37 @@ module.exports = function metadata(options, cb) {
   var opts = extend({}, options);
   var context = {};
 
-  var github = new GitHub(options);
-  var pagedData = paged.bind(null, github);
-  var getData = get.bind(null, github);
+  repoExists(`https://github.com/${opts.owner}/${opts.repo}`, function(err, exists) {
+    if (err) {
+      return cb(err);
+    }
+    if (!exists) {
+      cb(new Error(`Unable to find repository "${opts.owner}/${opts.repo}"`));
+      return;
+    }
 
-  Promise.resolve(context)
-    .then(orgData(github, opts))
-    .then(pagedData('contributors', '/repos/:owner/:repo/contributors', opts))
-    .then(pagedData('collaborators', '/repos/:owner/:repo/collaborators', opts))
-    .then(pagedData('branches', '/repos/:owner/:repo/branches', opts))
-    .then(getData('languages', '/repos/:owner/:repo/languages', opts))
-    .then(pagedData('teams', '/repos/:owner/:repo/teams', opts))
-    .then(pagedData('releases', '/repos/:owner/:repo/releases', opts))
-    .then(pagedData('tags', '/repos/:owner/:repo/tags', opts))
-    .then(getData('repository', '/repos/:owner/:repo', opts))
-    .then(getData('pages_info', '/repos/:owner/:repo/pages', opts))
-    .then(createPagesData(opts))
-    .then(copyProperties(opts))
-    .then(function(context) {
-      cb(null, context);
-    })
-    .catch(cb);
+    var github = new GitHub(opts);
+    var pagedData = paged.bind(null, github);
+    var getData = get.bind(null, github);
+
+    Promise.resolve(context)
+      .then(orgData(github, opts))
+      .then(pagedData('contributors', '/repos/:owner/:repo/contributors', opts))
+      .then(pagedData('collaborators', '/repos/:owner/:repo/collaborators', opts))
+      .then(pagedData('branches', '/repos/:owner/:repo/branches', opts))
+      .then(getData('languages', '/repos/:owner/:repo/languages', opts))
+      .then(pagedData('teams', '/repos/:owner/:repo/teams', opts))
+      .then(pagedData('releases', '/repos/:owner/:repo/releases', opts))
+      .then(pagedData('tags', '/repos/:owner/:repo/tags', opts))
+      .then(getData('repository', '/repos/:owner/:repo', opts))
+      .then(getData('pages_info', '/repos/:owner/:repo/pages', opts))
+      .then(createPagesData(opts))
+      .then(copyProperties(opts))
+      .then(function(context) {
+        cb(null, context);
+      })
+      .catch(cb);
+  });
 };
 
 /**
@@ -332,4 +343,19 @@ function copyAll(provider, receiver, props) {
     var key = keys[i];
     copy(provider, receiver, key, props[key]);
   }
+}
+
+/**
+ * Checks if a repository exists.
+ *
+ * @param  {String} `url` Repository url to check.
+ * @param  {Function} `cb` Callback with `err` and `exists` arguments.
+ */
+
+function repoExists(url, cb) {
+  https.get(url, function(res) {
+    cb(null, String(res.statusCode) !== '404');
+  }).on('error', function(err) {
+    cb(null, false);
+  });
 }

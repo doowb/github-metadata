@@ -14,6 +14,18 @@ describe('github-metadata', function() {
     assert.equal(typeof metadata, 'function');
   });
 
+  it('should return an error when the repository does not exist', function(cb) {
+    var options = {owner: 'doowb', repo: 'this-repo-does-not-exist'};
+    githubAuth()
+      .then(function(auth) {
+        metadata(extend(options, auth), function(err, data) {
+          if (!err) return cb(new Error('expected an error'));
+          assert.equal(err.message, `Unable to find repository "${options.owner}/${options.repo}"`);
+          cb();
+        });
+      });
+  });
+
   it('should get metadata for a user page when the owner is a user', function(cb) {
     var options = {owner: 'doowb', repo: 'doowb.github.com'};
     githubAuth()
