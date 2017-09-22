@@ -1,7 +1,7 @@
 {
   "name": "github-metadata",
   "description": "Gather GitHub metadata about a repository.",
-  "version": "1.1.0",
+  "version": "2.0.0",
   "homepage": "https://github.com/doowb/github-metadata",
   "author": "Brian Woodward (https://doowb.com)",
   "repository": "doowb/github-metadata",
