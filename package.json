@@ -25,7 +25,7 @@
     "github-base": "^0.5.4",
     "github-content": "^1.0.1",
     "koalas": "^1.0.2",
-    "set-value": "^1.0.0"
+    "set-value": "^3.0.2"
   },
   "devDependencies": {
     "bot-github-auth": "^0.1.0",
