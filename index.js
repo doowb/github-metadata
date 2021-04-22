@@ -198,8 +198,8 @@ function copyProperties(options) {
     }
 
     var primary = pages.enterprise
-      ? repo.name.toLowerCase() === `${opts.owner.toLowerCase()}.${pages.github_hostname}`
-      : userPageDomains.indexOf(repo.name.toLowerCase()) !== -1;
+      ? !!repo.name && !!opts.owner && repo.name.toLowerCase() === `${opts.owner.toLowerCase()}.${pages.github_hostname}`
+      : !!repo.name && userPageDomains.indexOf(repo.name.toLowerCase()) !== -1;
 
     var userPage = primary;
     var repoUrl = `${ownerUrl}/${repo.name}`;
